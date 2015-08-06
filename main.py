@@ -1,49 +1,47 @@
 #!/usr/bin/env python
+
 import wx
+import os.path
 
-import sgmllib
 
-class MyParser(sgmllib.SGMLParser):
-  "A simple parser class."
-  def parse(self, s):
-    "Parse the given string 's'."
-    self.feed(s)
-    self.close()
-  def __init__(self, verbose=0):
-    "Initialise an object, passing 'verbose' to the superclass."
-    sgmllib.SGMLParser.__init__(self, verbose)
-    self.hyperlinks = []
-    self.title = ''
-  def start_a(self, attributes):
-    "Process a hyperlink and its 'attributes'."
-    for name, value in attributes:
-      if name == "href":
-        self.hyperlinks.append(value)
-    
-  def get_hyperlinks(self):
-    "Return the list of hyperlinks."
-    return self.hyperlinks
-  def get_title(self):
-    "Return the title of the A-fund."
-    return self.title
+class MainWindow(wx.Frame):
+  def __init__(self):
+    super(MainWindow, self).__init__(None, size=(800,600))
+    self.CreateInteriorWindowComponents()
+    self.CreateExteriorWindowComponents()
+    self.Centre()
+  def CreateInteriorWindowComponents(self):
+    panel = wx.Panel(self)
+    boxmain = wx.BoxSizer(wx.VERTICAL)
+    st1 = wx.StaticText(panel, label='Prices:')
+    self.textprice = wx.TextCtrl(panel, style=wx.TE_MULTILINE)
+    st2 = wx.StaticText(panel, label='Values:')
+    self.textvalue = wx.TextCtrl(panel, style=wx.TE_MULTILINE)
+    btncalc = wx.Button(panel, label='Calculate')
+    btncalc.Bind(wx.EVT_BUTTON, self.OnCalculate)
+    st3 = wx.StaticText(panel, label='Results:')
+    self.textresult = wx.TextCtrl(panel, style=wx.TE_MULTILINE|wx.TE_READONLY)
+    boxmain.Add((-1, 10))
+    boxmain.Add(st1)
+    boxmain.Add(self.textprice, flag=wx.TOP|wx.EXPAND, proportion=1);
+    boxmain.Add((-1, 10))
+    boxmain.Add(st2)
+    boxmain.Add(self.textvalue, flag=wx.TOP|wx.EXPAND, proportion=1);
+    boxmain.Add((-1, 10))
+    boxmain.Add(btncalc)
+    boxmain.Add((-1, 10))
+    boxmain.Add(st3)
+    boxmain.Add(self.textresult, flag=wx.TOP|wx.EXPAND, proportion=1);
+    panel.SetSizer(boxmain)
+  def CreateExteriorWindowComponents(self):
+    self.CreateStatusBar()
+    self.SetTitle()
+  def SetTitle(self):
+    super(MainWindow, self).SetTitle('A-Fund')
+  def OnCalculate(self, event):
+    self.textresult.SetValue('%s:%s' % (self.textprice.GetValue(), self.textvalue.GetValue() ) )
 
-import urllib, sgmllib
-
-# Get something to work with.
-f = urllib.urlopen("http://finance.sina.com.cn/fund/quotes/150186/bc.shtml")
-s = f.read()
-
-# Try and process the page.
-# The class should have been defined first, remember.
-myparser = MyParser()
-myparser.parse(s)
-
-# Get the hyperlinks.
-print myparser.get_hyperlinks()
-
-app = wx.App(False)  # Create a new app, don't redirect stdout/stderr to a window.
-frame = wx.Frame(None, wx.ID_ANY, "Hello World") # A Frame is a top-level window.
-frame.Show(True)     # Show the frame.
+app = wx.App()
+frame = MainWindow()
+frame.Show()
 app.MainLoop()
-
-
